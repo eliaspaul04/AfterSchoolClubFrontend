@@ -1,0 +1,301 @@
+<html>
+    <head>
+        <title>After School Club</title>
+        <script src="https://unpkg.com/vue@2.7.8/dist/vue.js"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+        <script src="courses.js"></script>
+        <link rel="stylesheet" href="styles.css">
+    </head>
+    <body>
+        <div id="app">
+            <header> 
+                <h1 v-text="sitename"></h1>
+            </header>
+
+            <nav class="navbar">
+                <ul class="navbar-menu">
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="#about">About</a></li>
+                    <li class="search-bar">
+                        <input type="text" placeholder="Search..." v-model="searchQuery">
+                        <button><i class="fa fa-search"></i></button>
+                    </li>
+                    <li><a href="#products">Products</a></li>
+                    <li class="checkout-button"></li>
+                        <div class="checkout-button-container">
+                            <button v-on:click='showCheckout'>
+                                {{cartItemCount}}
+                                <span class="fa-solid fa-cart-shopping fa-beat"></span> 
+                                Checkout
+                            </button>
+                        </div>
+                    </li>
+                </ul>
+            </nav>  
+
+            
+            <div class="sort-dropdown-container">
+                <label for="sortAttribute">Sort by:</label>
+                <select v-model="sortAttribute" @change="sortProducts">
+                    <option value="price">Price</option>
+                    <option value="rating">Rating</option>
+                    <option value="location">Location</option>
+                    <option value="availability">Availability</option>
+                </select>
+
+                <label for="sortOrder">Order:</label>
+                <select v-model="sortOrder" @change="sortProducts">
+                    <option value="asc">Ascending</option>
+                    <option value="desc">Descending</option>
+                </select>
+            </div>
+
+
+
+            <!-- <div class="checkout-button-container">
+                <button v-on:click='showCheckout'>
+                    {{cartItemCount}}
+                    <span class="fa-solid fa-cart-shopping fa-beat"></span> 
+                    Checkout
+                </button>
+            </div> -->
+            
+            <main>           
+                <!-- <section id="home">
+                    <h2>Welcome to After School Club</h2>
+                    <p>Explore our wide range of exciting clubs and activities!</p>
+                </section>
+
+                <section id="about">
+                    <h2>About Us</h2>
+                    <p>We provide engaging after-school programs for students to learn and have fun.</p>
+                </section> -->
+
+                <section id="products">
+                    <!-- <h2>Our Products</h2> -->
+                    <div v-if='showProduct' class="products-container">
+                        <div v-for="product in sortedProducts" class="product-card">
+                            <figure>
+                                <img v-bind:src="product.image" style="height: 30vh; width:30vh;">
+                            </figure>
+                            <h2 v-text="product.title"></h2>
+                            <p v-html="product.description"></p>
+                            <p>Location: {{ product.location }}</p>
+                            <p>Price: {{product.price}}</p>
+                        
+
+                            <button v-on:click='addToCart(product)' v-if='canAddToCart(product)'>
+                                Add to Cart
+                            </button>
+
+                            <button disabled='disabled' v-else>
+                                Add to Cart
+                            </button>
+
+                            <span v-if ='product.availableInventory === cartCount(product.id)'>
+                                All out!
+                            </span>
+
+                            <span v-else-if ="product.availableInventory - cartCount(product.id) < 5"> 
+                                Only {{product.availableInventory - cartCount(product.id)}} left!
+                            </span>
+
+                            <span v-else> Buy now!</span>
+
+                            <div style="display: flex; align-items: center;">
+                                <p style="margin: 20;">Rating -</p>
+                                <div style="display: flex; margin-left: 5px;">
+                                    <span v-for="n in product.rating">★</span>
+                                    <span v-for="n in 5 - product.rating">☆</span>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div v-else>
+                        <h2>Checkout</h2>
+                        <p>
+                            <strong>First Name: </strong>
+                            <input v-model.trim="order.firstName">
+                        </p>
+                        <p>
+                            <strong>Last name: </strong>
+                            <input v-model.trim="order.lastName">
+                        </p>
+
+                        <p> 
+                            <strong>Address: </strong>
+                            <input v-model="order.address">
+                        </p>
+
+                        <p>
+                            <strong>City: </strong>
+                            <input v-model="order.city">
+                        </p>
+
+                        <p>
+                            <strong>State: </strong>
+                            <select v-model="order.state">
+                                <option disabled value="">State</option>
+                                <option v-for="(state, key) in states"
+                                v-bind:value="state">
+                                {{key}}
+                                </option>
+                            </select>
+                        </p>
+
+                        <p>
+                            <strong>Zip/Postal Code: </strong>
+                            <input v-model.trim="order.zip">
+                        </p>
+
+                        <p> 
+                            <input type ="checkbox" id="gift" value="true" v-model="order.gift"
+                            v-bind:true-value="order.sendGift"
+                            v-bind:false-value="order.dontSendGift">
+
+                            
+                            <label for="gift">Ship As Gift?</label>
+                        </p>
+
+                        <p> 
+                            <input type="radio" id="home" value="Home" v-model="order.method">
+                            <label for ="home">Home</label>
+
+                            <input type="radio" id="home" value="Home" v-model="order.method">
+                            <label for="business">Business</label>
+                        </p>
+
+                        <h2>Order Information</h2>
+                        <p>First Name: {{order.firstName}}</p>
+                        <p>Last Name: {{order.lastName}}</p>
+                        <p>Address: {{order.address}}</p>
+                        <p>City: {{order.city}}</p>
+                        <p>Zip: {{order.zip}}</p>
+                        <p>State: {{order.state}}</p>
+                        <p>Gift - {{order.gift}}</p>
+                        <p>Method: {{order.method}}</p>
+
+                        <button v-on:click="submitForm">Place Order</button>
+
+                    </div>
+                </section>
+            </main>
+        </div>
+    
+        <script type="text/javascript">
+
+            var webstore = new Vue ({
+                el:'#app',
+                data:{
+                    showProduct:true,
+                    order:{
+                        firstName:'',
+                        lastName:'',
+                        address:'',
+                        city:'',
+                        zip:'',
+                        state:'',
+                        method:'Home',
+                        gift:false,
+                        sendGift:'Send as a gift',
+                        dontSendGift:'Do not send a gift',
+                    },
+
+                    states:{
+                        AL:'Alabama',
+                        AR:'Arizona',
+                        CA:'California',
+                        NV:'Nevada',
+                    },
+                    
+                    sitename: 'After School Club',
+                    products:products,
+                    cart: [],
+                    sortOption: 'price-asc',
+                    searchQuery: '',
+                    sortAttribute: 'price', 
+                    sortOrder: 'asc',
+                },
+
+
+                methods:{
+
+                    addToCart(product){
+                        this.cart.push(product.id)
+                    },
+
+                    showCheckout() {
+                        if (this.cart.length === 0) {
+                            alert("Your cart is empty. Please add items to the cart before proceeding to checkout.");
+                        } else {
+                            this.showProduct = !this.showProduct; // Switch to the checkout page
+                        }
+                    },
+
+                    submitForm() {
+                        alert('Order submitted!')
+                    },
+
+                    canAddToCart (product){
+                        return product.availableInventory > this.cartCount(product.id);
+                    },
+
+                    cartCount (id) {
+                        let count = 0;
+                        for (let i = 0; i < this.cart.length; i++){
+                            if (this.cart[i] === id){
+                                count++;
+                            }
+                        }
+                        return count;
+                    },
+
+                    sortProducts() {
+                    },  
+                },
+
+                computed: {
+
+                    cartItemCount(){
+                        return this.cart.length;
+                    },
+
+                    sortedProducts() {
+
+                        // search option
+                        let filteredProducts = this.products.filter(product => {
+                        const titleMatch = product.title.toLowerCase().startsWith(this.searchQuery.toLowerCase());     
+                        return titleMatch; //dont use default js function use your own.
+                        });
+
+                        // for search to include description. const descriptionMatch = product.description.toLowerCase().startsWith(this.searchQuery.toLowerCase());  || descriptionMatch;   
+                        // for search to include location.    const locationMatch = product.location.toLowerCase().startsWith(this.searchQuery.toLowerCase());  || locationMatch;
+
+                        //sort option
+                        filteredProducts.sort((a, b) => {
+                            let result = 0;
+
+                            if (this.sortAttribute === 'price') {
+                                result = a.price - b.price;
+                            } else if (this.sortAttribute === 'rating') {
+                                result = a.rating - b.rating;
+                            } else if (this.sortAttribute === 'location') {
+                                result = a.location.localeCompare(b.location);
+                            } else if (this.sortAttribute === 'availability') {
+                                result = a.availableInventory - b.availableInventory;
+                            }
+
+                            // Adjust for ascending or descending order
+                            return this.sortOrder === 'asc' ? result : -result;
+                        });
+
+                        return filteredProducts;
+                    },
+                },
+            });
+
+        </script>
+    </body>
+</html>
