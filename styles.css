@@ -208,39 +208,224 @@ div[style*="display: flex;"] {
     color: #FFD700; /* Gold for stars */
 }
 
-/* Checkout Form */
-div[v-if="showCheckout"] p {
+#checkout {
+    font-family: Arial, sans-serif;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+h1 {
+    text-align: center;
+    font-size: 2rem;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.cart-items {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.cart-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+}
+
+.product-image {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.item-details {
+    flex: 1;
+    margin-left: 20px;
+}
+
+h3 {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+p {
+    font-size: 1rem;
+    color: #555;
+}
+
+.item-quantity input {
+    width: 50px;
+    padding: 5px;
+    font-size: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.item-price, .item-total {
+    font-weight: bold;
+    color: #000;
+}
+
+.order-summary {
+    margin-top: 40px;
+    padding: 20px;
+    border-radius: 8px;
+    border: none;  /* Removed border */
+    background-color: transparent;  /* Removed background color */
+}
+
+.order-summary h3 {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.order-summary p {
+    font-size: 1.2rem;
     margin-bottom: 10px;
 }
 
-.checkout-button-container {
-    display: flex;
-    justify-content: flex-end;
-    width: 100%;
-    padding-right: 20px; /* Optional for spacing from the edge */
+.checkout-button {
+    background-color: #1f271f;
+    color: white;
+    font-size: 1.2rem;
+    padding: 4px 5px;
+    border: none;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
 }
 
+.checkout-button:hover {
+    background-color: #828882;
+}
 
-input, select {
+@media (max-width: 768px) {
+    .cart-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .product-image {
+        width: 80px;
+        height: 80px;
+    }
+
+    .item-details {
+        margin-left: 0;
+        margin-top: 10px;
+    }
+
+    .order-summary {
+        padding: 15px;
+    }
+}
+
+/* Checkout Form */
+.checkout-form {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.checkout-form h2 {
+    font-size: 2rem;
+    margin-bottom: 20px;
+}
+
+.checkout-form .customer-info p {
+    font-size: 1rem;
+    margin: 10px 0;
+}
+
+.checkout-form .customer-info input, 
+.checkout-form .customer-info select {
+    width: 100%;
     padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
     margin-top: 5px;
+    font-size: 1rem;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+}
+
+.checkout-form button {
+    background-color: #4CAF50;
+    color: white;
+    font-size: 1.2rem;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-top: 20px;
     width: 100%;
-    box-sizing: border-box;
 }
 
-input[type="checkbox"], input[type="radio"] {
-    width: auto;
-    margin-right: 5px;
+.checkout-form button:hover {
+    background-color: #45a049;
 }
 
-label {
-    margin-right: 15px;
-}
-
-/* Order Information */
-h2 {
-    font-size: 1.8em;
+/* Billing Section */
+.billing-summary {
+    background-color: #f9f9f9;
+    padding: 20px;
     margin-top: 30px;
+    border-radius: 8px;
+}
+
+.billing-summary h3 {
+    font-size: 1.6rem;
+    margin-bottom: 20px;
+}
+
+.billing-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+.billing-item p {
+    font-size: 1rem;
+}
+
+.total-price {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-top: 20px;
+    text-align: right;
+}
+
+.total-price p {
+    color: #333;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .products-container {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .product-card {
+        width: 100%;
+        margin-bottom: 20px;
+    }
+
+    .checkout-form {
+        padding: 15px;
+    }
+
+    .checkout-form button {
+        font-size: 1rem;
+        padding: 8px 15px;
+    }
 }
