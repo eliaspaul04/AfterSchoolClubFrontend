@@ -13,26 +13,25 @@
 
             <nav class="navbar">
                 <ul class="navbar-menu">
-                    <li><a href="#home">Home</a></li>
-                    <li><a href="#about">About</a></li>
                     <li class="search-bar">
                         <input type="text" placeholder="Search..." v-model="searchQuery">
                         <button><i class="fa fa-search"></i></button>
                     </li>
-                    <li><a href="#products">Products</a></li>
-                    <li class="checkout-button"></li>
+                    <li><a href="#products" v-on:click.prevent="showProducts">Products</a></li> <!-- No cart redirection here -->
+                    <li class="checkout-button">
                         <div class="checkout-button-container">
-                            <button v-on:click='showCheckout'>
-                                {{cartItemCount}}
+                            <button v-on:click="showCheckout">
+                                {{ cartItemCount }}
                                 <span class="fa-solid fa-cart-shopping fa-beat"></span> 
                                 Checkout
                             </button>
                         </div>
                     </li>
                 </ul>
-            </nav>  
-
+            </nav>
             
+            
+
             <div class="sort-dropdown-container">
                 <label for="sortAttribute">Sort by:</label>
                 <select v-model="sortAttribute" @change="sortProducts">
@@ -49,29 +48,8 @@
                 </select>
             </div>
 
-
-
-            <!-- <div class="checkout-button-container">
-                <button v-on:click='showCheckout'>
-                    {{cartItemCount}}
-                    <span class="fa-solid fa-cart-shopping fa-beat"></span> 
-                    Checkout
-                </button>
-            </div> -->
-            
             <main>           
-                <!-- <section id="home">
-                    <h2>Welcome to After School Club</h2>
-                    <p>Explore our wide range of exciting clubs and activities!</p>
-                </section>
-
-                <section id="about">
-                    <h2>About Us</h2>
-                    <p>We provide engaging after-school programs for students to learn and have fun.</p>
-                </section> -->
-
                 <section id="products">
-                    <!-- <h2>Our Products</h2> -->
                     <div v-if='showProduct' class="products-container">
                         <div v-for="product in sortedProducts" class="product-card">
                             <figure>
@@ -80,25 +58,23 @@
                             <h2 v-text="product.title"></h2>
                             <p v-html="product.description"></p>
                             <p>Location: {{ product.location }}</p>
-                            <p>Price: {{product.price}}</p>
-                        
+                            <p>Price: {{ product.price }}</p>
 
-                            <button v-on:click='addToCart(product)' v-if='canAddToCart(product)'>
-                                Add to Cart
-                            </button>
+                            <div>
+                                <button v-on:click='addToCart(product)' v-if='canAddToCart(product)'>
+                                    Add to Cart
+                                </button>
+                                <button v-on:click='' disabled v-else>
+                                    Add to Cart
+                                </button>
+                            </div>
 
-                            <button disabled='disabled' v-else>
-                                Add to Cart
-                            </button>
-
-                            <span v-if ='product.availableInventory === cartCount(product.id)'>
+                            <span v-if='product.availableInventory === cartCount(product.id)'>
                                 All out!
                             </span>
-
-                            <span v-else-if ="product.availableInventory - cartCount(product.id) < 5"> 
-                                Only {{product.availableInventory - cartCount(product.id)}} left!
+                            <span v-else-if="product.availableInventory - cartCount(product.id) < 5"> 
+                                Only {{ product.availableInventory - cartCount(product.id) }} left!
                             </span>
-
                             <span v-else> Buy now!</span>
 
                             <div style="display: flex; align-items: center;">
@@ -108,83 +84,65 @@
                                     <span v-for="n in 5 - product.rating">☆</span>
                                 </div>
                             </div>
-
+                            <p>Remaining Stock: {{ product.availableInventory - cartCount(product.id) }} items left</p>
                         </div>
                     </div>
 
                     <div v-else>
-                        <h2>Checkout</h2>
-                        <p>
-                            <strong>First Name: </strong>
-                            <input v-model.trim="order.firstName">
-                        </p>
-                        <p>
-                            <strong>Last name: </strong>
-                            <input v-model.trim="order.lastName">
-                        </p>
+                        <section id="checkout">
+                            <h2>Checkout</h2>
 
-                        <p> 
-                            <strong>Address: </strong>
-                            <input v-model="order.address">
-                        </p>
+                            <div>
+                                <h3>Order Summary</h3>
+                                <div v-for="product in cartProducts" :key="product.id" class="billing-item">
+                                    <p>{{ product.title }} x{{ cartCount(product.id) }}</p>
+                                    <p>Price: ${{ product.price.toFixed(2) }}</p>
+                                    <p>Total: ${{ (product.price * cartCount(product.id)).toFixed(2) }}</p>
+                                </div>
 
-                        <p>
-                            <strong>City: </strong>
-                            <input v-model="order.city">
-                        </p>
+                                <hr>
+                                <p><strong>Total Price: ${{ totalPrice.toFixed(2) }}</strong></p>
+                            </div>
 
-                        <p>
-                            <strong>State: </strong>
-                            <select v-model="order.state">
-                                <option disabled value="">State</option>
-                                <option v-for="(state, key) in states"
-                                v-bind:value="state">
-                                {{key}}
-                                </option>
-                            </select>
-                        </p>
+                            <div>
+                                <p><strong>First Name: </strong><input v-model.trim="order.firstName"></p>
+                                <p><strong>Last Name: </strong><input v-model.trim="order.lastName"></p>
+                                <p><strong>Address: </strong><input v-model="order.address"></p>
+                                <p><strong>City: </strong><input v-model="order.city"></p>
+                                <p><strong>State: </strong>
+                                    <select v-model="order.state">
+                                        <option disabled value="">State</option>
+                                        <option v-for="(state, key) in states" :value="state">{{ key }}</option>
+                                    </select>
+                                </p>
+                                <p><strong>Zip/Postal Code: </strong><input v-model.trim="order.zip"></p>
 
-                        <p>
-                            <strong>Zip/Postal Code: </strong>
-                            <input v-model.trim="order.zip">
-                        </p>
+                                <p><input type="checkbox" id="gift" v-model="order.gift"><label for="gift">Ship As Gift?</label></p>
 
-                        <p> 
-                            <input type ="checkbox" id="gift" value="true" v-model="order.gift"
-                            v-bind:true-value="order.sendGift"
-                            v-bind:false-value="order.dontSendGift">
+                                <p>
+                                    <input type="radio" id="home" value="Home" v-model="order.method"><label for="home">Home</label>
+                                    <input type="radio" id="business" value="Business" v-model="order.method"><label for="business">Business</label>
+                                </p>
 
-                            
-                            <label for="gift">Ship As Gift?</label>
-                        </p>
+                                <h3>Order Information</h3>
+                                <p>First Name: {{ order.firstName }}</p>
+                                <p>Last Name: {{ order.lastName }}</p>
+                                <p>Address: {{ order.address }}</p>
+                                <p>City: {{ order.city }}</p>
+                                <p>Zip: {{ order.zip }}</p>
+                                <p>State: {{ order.state }}</p>
+                                <p>Gift: {{ order.gift ? 'Yes' : 'No' }}</p>
+                                <p>Method: {{ order.method }}</p>
 
-                        <p> 
-                            <input type="radio" id="home" value="Home" v-model="order.method">
-                            <label for ="home">Home</label>
-
-                            <input type="radio" id="home" value="Home" v-model="order.method">
-                            <label for="business">Business</label>
-                        </p>
-
-                        <h2>Order Information</h2>
-                        <p>First Name: {{order.firstName}}</p>
-                        <p>Last Name: {{order.lastName}}</p>
-                        <p>Address: {{order.address}}</p>
-                        <p>City: {{order.city}}</p>
-                        <p>Zip: {{order.zip}}</p>
-                        <p>State: {{order.state}}</p>
-                        <p>Gift - {{order.gift}}</p>
-                        <p>Method: {{order.method}}</p>
-
-                        <button v-on:click="submitForm">Place Order</button>
-
+                                <button v-on:click="submitForm">Place Order</button>
+                            </div>
+                        </section>
                     </div>
                 </section>
             </main>
         </div>
-    
+
         <script type="text/javascript">
-        
             var webstore = new Vue({
                 el: '#app',
                 data: {
@@ -198,30 +156,24 @@
                         state: '',
                         method: 'Home',
                         gift: false,
-                        sendGift: 'Send as a gift',
-                        dontSendGift: 'Do not send a gift',
                     },
-
                     states: {
                         AL: 'Alabama',
                         AR: 'Arizona',
                         CA: 'California',
                         NV: 'Nevada',
                     },
-                    
                     sitename: 'After School Club',
-                    products: [],  // Initially an empty array, will be populated via the backend
+                    products: [],
                     cart: [],
-                    sortOption: 'price-asc',
                     searchQuery: '',
                     sortAttribute: 'price', 
                     sortOrder: 'asc',
                 },
 
                 mounted() {
-                    this.fetchProducts();  // Fetch products when the Vue instance is mounted
+                    this.fetchProducts();
                 },
-
 
                 methods: {
 
@@ -229,38 +181,41 @@
                         this.cart.push(product.id);
                     },
 
+
                     showCheckout() {
                         if (this.cart.length === 0) {
                             alert("Your cart is empty. Please add items to the cart before proceeding to checkout.");
                         } else {
-                            this.showProduct = !this.showProduct; // Switch to the checkout page
+                            this.showProduct = false;  // Show checkout page
                         }
                     },
 
+                    showProducts() {
+                            this.showProduct = true;  // Show product listing page
+                        },
+                    
+
                     submitForm() {
-                        // POST request to submit the order
                         fetch('http://localhost:3000/orders', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
                             },
-                            body: JSON.stringify(this.order), // Send the order data
+                            body: JSON.stringify(this.order),
                         })
                         .then(response => response.json())
                         .then(data => {
                             alert('Order submitted successfully! Order ID: ' + data.orderId);
-                            this.updateProductAvailability(); // Call to update product availability without passing cart
+                            this.updateProductAvailability();
                         })
-                        .catch(error => {
-                            console.error('Error submitting order:', error);
-                        });
+                        .catch(error => console.error('Error submitting order:', error));
                     },
 
                     updateProductAvailability() {
                         this.cart.forEach(productId => {
                             const product = this.products.find(p => p.id === productId);
                             if (product && product.availableInventory > 0) {
-                                product.availableInventory--; // Decrease available inventory
+                                product.availableInventory--;
                                 this.updateProduct(product.id, { availableInventory: product.availableInventory });
                             } else {
                                 console.warn(`Product with ID ${productId} is out of stock.`);
@@ -269,7 +224,6 @@
                     },
 
                     updateProduct(productId, updateData) {
-                        // PUT request to update product data
                         fetch(`http://localhost:3000/products/${productId}`, {
                             method: 'PUT',
                             headers: {
@@ -278,22 +232,17 @@
                             body: JSON.stringify(updateData),
                         })
                         .then(response => response.json())
-                        .then(data => {
-                            console.log('Product updated:', data);
-                        })
-                        .catch(error => {
-                            console.error('Error updating product:', error);
-                        });
+                        .then(data => console.log('Product updated:', data))
+                        .catch(error => console.error('Error updating product:', error));
                     },
-                    fetchProducts() {                    
+
+                    fetchProducts() {
                         fetch('http://localhost:3000/products')
                             .then(response => response.json())
                             .then(data => {
-                                this.products = data;  // Set the fetched products to the `products` data property
+                                this.products = data;
                             })
-                            .catch(error => {
-                                console.error('Error fetching products:', error);
-                            });
+                            .catch(error => console.error('Error fetching products:', error));
                     },
 
                     canAddToCart(product) {
@@ -301,61 +250,55 @@
                     },
 
                     cartCount(id) {
-                        let count = 0;
-                        for (let i = 0; i < this.cart.length; i++) {
-                            if (this.cart[i] === id) {
-                                count++;
-                            }
-                        }
-                        return count;
+                        return this.cart.filter(itemId => itemId === id).length;
                     },
 
                     sortProducts() {
-                        // Sorting logic here
-                    },
-                },
+                        let filteredProducts = this.products.filter(product => product.title.toLowerCase().startsWith(this.searchQuery.toLowerCase()));
 
-
-                computed: {
-
-                    cartItemCount(){
-                        return this.cart.length;
-                    },
-
-                    sortedProducts() {
-
-                        // search option
-                        let filteredProducts = this.products.filter(product => {
-                        const titleMatch = product.title.toLowerCase().startsWith(this.searchQuery.toLowerCase());     
-                        return titleMatch; //dont use default js function use your own.
-                        });
-
-                        // for search to include description. const descriptionMatch = product.description.toLowerCase().startsWith(this.searchQuery.toLowerCase());  || descriptionMatch;   
-                        // for search to include location.    const locationMatch = product.location.toLowerCase().startsWith(this.searchQuery.toLowerCase());  || locationMatch;
-
-                        //sort option
                         filteredProducts.sort((a, b) => {
                             let result = 0;
+                            if (this.sortAttribute === 'price') result = a.price - b.price;
+                            else if (this.sortAttribute === 'rating') result = a.rating - b.rating;
+                            else if (this.sortAttribute === 'location') result = a.location.localeCompare(b.location);
+                            else if (this.sortAttribute === 'availability') result = a.availableInventory - b.availableInventory;
 
-                            if (this.sortAttribute === 'price') {
-                                result = a.price - b.price;
-                            } else if (this.sortAttribute === 'rating') {
-                                result = a.rating - b.rating;
-                            } else if (this.sortAttribute === 'location') {
-                                result = a.location.localeCompare(b.location);
-                            } else if (this.sortAttribute === 'availability') {
-                                result = a.availableInventory - b.availableInventory;
-                            }
-
-                            // Adjust for ascending or descending order
                             return this.sortOrder === 'asc' ? result : -result;
                         });
 
                         return filteredProducts;
                     },
                 },
-            });
 
+                computed: {
+
+                    sortedProducts() {
+                        return this.sortProducts();
+                    },
+
+                    cartItemCount() {
+                        return this.cart.length;
+                    },
+
+                    totalPrice() {
+                        return this.cart.reduce((sum, productId) => {
+                            const product = this.products.find(p => p.id === productId);
+                            return sum + (product ? product.price : 0);
+                        }, 0);
+                    },
+
+                    cartProducts() {
+                        const cartItems = [];
+                        this.cart.forEach(productId => {
+                            const product = this.products.find(p => p.id === productId);
+                            if (product && !cartItems.some(item => item.id === product.id)) {
+                                cartItems.push({ ...product, count: this.cartCount(product.id) });
+                            }
+                        });
+                        return cartItems;
+                    },
+                }
+            });
         </script>
     </body>
 </html>
