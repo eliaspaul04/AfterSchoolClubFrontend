@@ -50,11 +50,11 @@
 
             <main>           
                 <section id="products">
-                    <!-- shows the products if 'showProduct' is true -->
+                     <!-- shows the products if 'showProduct' is true -->
                     <div v-if='showProduct' class="products-container">
                         <!-- Loops through each product in 'sortedProducts' -->
                         <div v-for="product in sortedProducts" class="product-card">
-                            
+
                             <figure>
                                 <img v-bind:src="product.image" style="height: 30vh; width:30vh;">
                             </figure>
@@ -62,7 +62,7 @@
                             <p v-html="product.description"></p>
                             <p>Location: {{ product.location }}</p>
                             <p>Price: {{ product.price }}</p>
-                
+
                             <!-- Add to Cart button is only visible if the product can be added to the cart -->
                             <div>
                                 <button v-on:click='addToCart(product)' v-if='canAddToCart(product)'>
@@ -72,8 +72,8 @@
                                     Add to Cart
                                 </button>
                             </div>
-                
-                            <!-- Shows status of availability of the product (out of stock or low stock) -->
+
+                             <!-- Shows status of availability of the product (out of stock or low stock) -->
                             <span v-if='product.availableInventory === cartCount(product.id)'>
                                 All out!
                             </span>
@@ -81,7 +81,7 @@
                                 Only {{ product.availableInventory - cartCount(product.id) }} left!
                             </span>
                             <span v-else> Buy now!</span>
-                
+
                             <!-- Displays the products rating as stars -->
                             <div style="display: flex; align-items: center;">
                                 <p style="margin: 20;">Rating -</p>
@@ -90,12 +90,11 @@
                                     <span v-for="n in 5 - product.rating">☆</span>
                                 </div>
                             </div>
-                
+                            
                             <!-- Shows remaining stock after adding to the cart -->
                             <p>Remaining Stock: {{ product.availableInventory - cartCount(product.id) }} items left</p>
                         </div>
                     </div>
-                </section>
                 
 
                     <div v-else>
@@ -212,6 +211,7 @@
                             alert("Your cart is empty. Please add items to the cart before proceeding to checkout.");
                         } else {
                             this.showProduct = false;  // Show checkout page
+                            console.log("Navigating to checkout");
                         }
                     },
 
