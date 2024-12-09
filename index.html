@@ -17,7 +17,7 @@
                         <input type="text" placeholder="Search..." v-model="searchQuery">
                         <button><i class="fa fa-search"></i></button>
                     </li>
-                    <li><a href="#products" v-on:click.prevent="showProducts">Products</a></li> <!-- No cart redirection here -->
+                    <li><a href="#products" v-on:click.prevent="showProducts">Products</a></li> 
                     <li class="checkout-button">
                         <div class="checkout-button-container">
                             <button v-on:click="showCheckout">
@@ -50,8 +50,11 @@
 
             <main>           
                 <section id="products">
+                    <!-- shows the products if 'showProduct' is true -->
                     <div v-if='showProduct' class="products-container">
+                        <!-- Loops through each product in 'sortedProducts' -->
                         <div v-for="product in sortedProducts" class="product-card">
+                            
                             <figure>
                                 <img v-bind:src="product.image" style="height: 30vh; width:30vh;">
                             </figure>
@@ -59,7 +62,8 @@
                             <p v-html="product.description"></p>
                             <p>Location: {{ product.location }}</p>
                             <p>Price: {{ product.price }}</p>
-
+                
+                            <!-- Add to Cart button is only visible if the product can be added to the cart -->
                             <div>
                                 <button v-on:click='addToCart(product)' v-if='canAddToCart(product)'>
                                     Add to Cart
@@ -68,7 +72,8 @@
                                     Add to Cart
                                 </button>
                             </div>
-
+                
+                            <!-- Shows status of availability of the product (out of stock or low stock) -->
                             <span v-if='product.availableInventory === cartCount(product.id)'>
                                 All out!
                             </span>
@@ -76,7 +81,8 @@
                                 Only {{ product.availableInventory - cartCount(product.id) }} left!
                             </span>
                             <span v-else> Buy now!</span>
-
+                
+                            <!-- Displays the products rating as stars -->
                             <div style="display: flex; align-items: center;">
                                 <p style="margin: 20;">Rating -</p>
                                 <div style="display: flex; margin-left: 5px;">
@@ -84,12 +90,16 @@
                                     <span v-for="n in 5 - product.rating">☆</span>
                                 </div>
                             </div>
+                
+                            <!-- Shows remaining stock after adding to the cart -->
                             <p>Remaining Stock: {{ product.availableInventory - cartCount(product.id) }} items left</p>
                         </div>
                     </div>
+                </section>
+                
 
                     <div v-else>
-                        <section id="checkout">
+                        <section id="checkout"> <!-- Checkout section only visible if 'showProduct' is false -->
                             <h2>Checkout</h2>
 
                             <div>
@@ -97,6 +107,7 @@
                                 <div v-for="product in cartProducts" :key="product.id" class="billing-item">
                                     <p>{{ product.title }} x{{ cartCount(product.id) }}</p>
                                     <p>Price: ${{ product.price.toFixed(2) }}</p>
+                                    <!-- Calculate the total price for each product based on quantity in cart -->
                                     <p>Total: ${{ (product.price * cartCount(product.id)).toFixed(2) }}</p>
                                 </div>
 
@@ -105,6 +116,7 @@
                             </div>
 
                             <div>
+                                <!-- Input fields for customer details (binding data with v-model) -->
                                 <p><strong>First Name: </strong><input v-model.trim="order.firstName"></p>
                                 <p><strong>Last Name: </strong><input v-model.trim="order.lastName"></p>
                                 <p><strong>Address: </strong><input v-model="order.address"></p>
@@ -147,6 +159,7 @@
                 el: '#app',
                 data: {
                     showProduct: true,
+                    // Object to store the user's order information
                     order: {
                         firstName: '',
                         lastName: '',
@@ -171,12 +184,9 @@
                     sortOrder: 'asc',
                 },
 
-                mounted() {
-                    this.fetchProducts();
-                },
-
                 methods: {
 
+                    // Fetches product data from the API and stores it in the 'products' array
                     fetchProducts() {
                         fetch('http://localhost:3000/products')
                             .then(response => response.json())
@@ -186,11 +196,12 @@
                             .catch(error => console.error('Error fetching products:', error));
                     },
 
+                    // Adds a product to the cart by pushing its ID to the 'cart' array
                     addToCart(product) {
                         this.cart.push(product.id);
                     },
 
-
+                    // Toggles between product listing and the checkout page based on the cart contents
                     showCheckout() {
                         if (this.cart.length === 0) {
                             alert("Your cart is empty. Please add items to the cart before proceeding to checkout.");
@@ -199,11 +210,12 @@
                         }
                     },
 
+                    // Displays the product listing page when called
                     showProducts() {
                             this.showProduct = true;  // Show product listing page
                         },
                     
-
+                    // Submits the order data to the server (POST request)
                     submitForm() {
                         fetch('http://localhost:3000/orders', {
                             method: 'POST',
@@ -220,11 +232,12 @@
                         .catch(error => console.error('Error submitting order:', error));
                     },
 
+                    // Updates the product availability after order submission
                     updateProductAvailability() {
                         this.cart.forEach(productId => {
                             const product = this.products.find(p => p.id === productId);
                             if (product && product.availableInventory > 0) {
-                                product.availableInventory--;
+                                product.availableInventory--;// Decrease available inventory
                                 this.updateProduct(product.id, { availableInventory: product.availableInventory });
                             } else {
                                 console.warn(`Product with ID ${productId} is out of stock.`);
@@ -232,6 +245,7 @@
                         });
                     },
 
+                    // Sends a PUT request to update product information on the server
                     updateProduct(productId, updateData) {
                         fetch(`http://localhost:3000/products/${productId}`, {
                             method: 'PUT',
@@ -245,29 +259,23 @@
                         .catch(error => console.error('Error updating product:', error));
                     },
 
-                    fetchProducts() {
-                        fetch('http://localhost:3000/products')
-                            .then(response => response.json())
-                            .then(data => {
-                                this.products = data;
-                            })
-                            .catch(error => console.error('Error fetching products:', error));
-                    },
-
+                    // Checks if a product can be added to the cart based on its available inventory
                     canAddToCart(product) {
                         return product.availableInventory > this.cartCount(product.id);
                     },
 
+                    // Counts how many times a product is in the cart
                     cartCount(id) {
                         return this.cart.filter(itemId => itemId === id).length;
                     },
 
+                    // Sorts products based on selected attribute and order, also applies search filter 
                     sortProducts() {
                         let filteredProducts = this.products.filter(product => product.title.toLowerCase().startsWith(this.searchQuery.toLowerCase()));
 
                         filteredProducts.sort((a, b) => {
                             let result = 0;
-                            if (this.sortAttribute === 'price') result = a.price - b.price;
+                            if (this.sortAttribute === 'price') result = a.price - b.price;// Sort by price
                             else if (this.sortAttribute === 'rating') result = a.rating - b.rating;
                             else if (this.sortAttribute === 'location') result = a.location.localeCompare(b.location);
                             else if (this.sortAttribute === 'availability') result = a.availableInventory - b.availableInventory;
@@ -281,6 +289,7 @@
 
                 computed: {
 
+                    // Filters products based on the search query, returning only those whose title includes the search string
                     filteredProducts() {
                         return this.products.filter(product => 
                             product.title.toLowerCase().includes(this.searchQuery.toLowerCase())
@@ -290,7 +299,8 @@
                     sortedProducts() {
                         return this.sortProducts();
                     },
-
+                    
+                    // Returns the total count of items in the cart
                     cartItemCount() {
                         return this.cart.length;
                     },
@@ -302,6 +312,7 @@
                         }, 0);
                     },
 
+                    // Returns a list of products in the cart, including the quantity (count) of each item
                     cartProducts() {
                         const cartItems = [];
                         this.cart.forEach(productId => {
