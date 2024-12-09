@@ -184,6 +184,11 @@
                     sortOrder: 'asc',
                 },
 
+                mounted() {
+                    // When the component is loaded into the webpage it automatically call the fetchProducts method to load the product data.
+                    this.fetchProducts();
+                },
+
                 methods: {
 
                     // Fetches product data from the API and stores it in the 'products' array
