@@ -1,338 +1,2408 @@
-<html>
-    <head>
-        <title>After School Club</title>
-        <script src="https://unpkg.com/vue@2.7.8/dist/vue.js"></script>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-        <link rel="stylesheet" href="styles.css">
-    </head>
-    <body>
-        <div id="app">
-            <header> 
-                <h1 v-text="sitename"></h1>
-            </header>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="After School Club activity catalogue and booking store.">
+    <title>After School Club | Explore. Learn. Create.</title>
 
-            <nav class="navbar">
-                <ul class="navbar-menu">
-                    <li class="search-bar">
-                        <input type="text" placeholder="Search..." v-model="searchQuery">
-                        <button><i class="fa fa-search"></i></button>
-                    </li>
-                    <li><a href="#products" v-on:click.prevent="showProducts">Products</a></li> 
-                    <li class="checkout-button">
-                        <div class="checkout-button-container">
-                            <button v-on:click="showCheckout">
-                                {{ cartItemCount }}
-                                <span class="fa-solid fa-cart-shopping fa-beat"></span> 
-                                Checkout
-                            </button>
-                        </div>
-                    </li>
-                </ul>
+    <script src="https://unpkg.com/vue@2.7.8/dist/vue.js"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
+        rel="stylesheet"
+    >
+
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+    >
+
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+<div id="app" v-cloak>
+
+    <!-- ==================== NAVIGATION ==================== -->
+
+    <header class="site-header">
+
+        <div class="topbar container">
+
+            <a
+                href="#products"
+                class="brand"
+                v-on:click.prevent="showProducts"
+            >
+
+                <span class="brand-mark">
+                    ASC
+                </span>
+
+                <span class="brand-copy">
+
+                    <strong>
+                        After School Club
+                    </strong>
+
+                    <small>
+                        Explore. Learn. Create.
+                    </small>
+
+                </span>
+
+            </a>
+
+
+            <nav
+                class="navbar"
+                aria-label="Main navigation"
+            >
+
+                <a
+                    href="#products"
+                    v-on:click.prevent="showProducts"
+                >
+                    Activities
+                </a>
+
+
+                <a
+                    href="#about"
+                    v-on:click.prevent="scrollToAbout"
+                >
+                    About
+                </a>
+
+
+                <button
+                    class="nav-cart"
+                    type="button"
+                    v-on:click="showCheckout"
+                >
+
+                    <i class="fa-solid fa-bag-shopping"></i>
+
+                    <span>
+                        Cart
+                    </span>
+
+                    <strong>
+                        {{ cartItemCount }}
+                    </strong>
+
+                </button>
+
             </nav>
-            
-            
 
-            <div class="sort-dropdown-container">
-                <label for="sortAttribute">Sort by:</label>
-                <select v-model="sortAttribute" @change="sortProducts">
-                    <option value="price">Price</option>
-                    <option value="rating">Rating</option>
-                    <option value="location">Location</option>
-                    <option value="availability">Availability</option>
-                </select>
-
-                <label for="sortOrder">Order:</label>
-                <select v-model="sortOrder" @change="sortProducts">
-                    <option value="asc">Ascending</option>
-                    <option value="desc">Descending</option>
-                </select>
-            </div>
-
-            <main>           
-                <section id="products">
-                     <!-- shows the products if 'showProduct' is true -->
-                    <div v-if='showProduct' class="products-container">
-                        <!-- Loops through each product in 'sortedProducts' -->
-                        <div v-for="product in sortedProducts" class="product-card">
-
-                            <figure>
-                                <img
-                                    v-bind:src="'https://afterschoolclub-backend.onrender.com/images/' + product.image.split('/').pop()"
-                                    style="height: 30vh; width:30vh;"
-                                >
-                            </figure>
-                            <h2 v-text="product.title"></h2>
-                            <p v-html="product.description"></p>
-                            <p>Location: {{ product.location }}</p>
-                            <p>Price: {{ product.price }}</p>
-
-                            <!-- Add to Cart button is only visible if the product can be added to the cart -->
-                            <div>
-                                <button v-on:click='addToCart(product)' v-if='canAddToCart(product)'>
-                                    Add to Cart
-                                </button>
-                                <button v-on:click='' disabled v-else>
-                                    Add to Cart
-                                </button>
-                            </div>
-
-                             <!-- Shows status of availability of the product (out of stock or low stock) -->
-                            <span v-if='product.availableInventory === cartCount(product.id)'>
-                                All out!
-                            </span>
-                            <span v-else-if="product.availableInventory - cartCount(product.id) < 5"> 
-                                Only {{ product.availableInventory - cartCount(product.id) }} left!
-                            </span>
-                            <span v-else> Buy now!</span>
-
-                            <!-- Displays the products rating as stars -->
-                            <div style="display: flex; align-items: center;">
-                                <p style="margin: 20;">Rating -</p>
-                                <div style="display: flex; margin-left: 5px;">
-                                    <span v-for="n in product.rating">★</span>
-                                    <span v-for="n in 5 - product.rating">☆</span>
-                                </div>
-                            </div>
-                            
-                            <!-- Shows remaining stock after adding to the cart -->
-                            <p>Remaining Stock: {{ product.availableInventory - cartCount(product.id) }} items left</p>
-                        </div>
-                    </div>
-                
-
-                    <div v-else>
-                        <section id="checkout"> <!-- Checkout section only visible if 'showProduct' is false -->
-                            <h2>Checkout</h2>
-
-                            <div>
-                                <h3>Order Summary</h3>
-                                <div v-for="product in cartProducts" :key="product.id" class="billing-item">
-                                    <p>{{ product.title }} x{{ cartCount(product.id) }}</p>
-                                    <p>Price: ${{ product.price.toFixed(2) }}</p>
-                                    <!-- Calculate the total price for each product based on quantity in cart -->
-                                    <p>Total: ${{ (product.price * cartCount(product.id)).toFixed(2) }}</p>
-                                </div>
-
-                                <hr>
-                                <p><strong>Total Price: ${{ totalPrice.toFixed(2) }}</strong></p>
-                            </div>
-
-                            <div>
-                                <!-- Input fields for customer details (binding data with v-model) -->
-                                <p><strong>First Name: </strong><input v-model.trim="order.firstName"></p>
-                                <p><strong>Last Name: </strong><input v-model.trim="order.lastName"></p>
-                                <p><strong>Address: </strong><input v-model="order.address"></p>
-                                <p><strong>City: </strong><input v-model="order.city"></p>
-                                <p><strong>State: </strong>
-                                    <select v-model="order.state">
-                                        <option disabled value="">State</option>
-                                        <option v-for="(state, key) in states" :value="state">{{ key }}</option>
-                                    </select>
-                                </p>
-                                <p><strong>Zip/Postal Code: </strong><input v-model.trim="order.zip"></p>
-
-                                <p><input type="checkbox" id="gift" v-model="order.gift"><label for="gift">Ship As Gift?</label></p>
-
-                                <p>
-                                    <input type="radio" id="home" value="Home" v-model="order.method"><label for="home">Home</label>
-                                    <input type="radio" id="business" value="Business" v-model="order.method"><label for="business">Business</label>
-                                </p>
-
-                                <h3>Order Information</h3>
-                                <p>First Name: {{ order.firstName }}</p>
-                                <p>Last Name: {{ order.lastName }}</p>
-                                <p>Address: {{ order.address }}</p>
-                                <p>City: {{ order.city }}</p>
-                                <p>Zip: {{ order.zip }}</p>
-                                <p>State: {{ order.state }}</p>
-                                <p>Gift: {{ order.gift ? 'Yes' : 'No' }}</p>
-                                <p>Method: {{ order.method }}</p>
-
-                                <button v-on:click="submitForm">Place Order</button>
-                            </div>
-                        </section>
-                    </div>
-                </section>
-            </main>
         </div>
 
-        <script type="text/javascript">
-            var webstore = new Vue({
-                el: '#app',
-                data: {
-                    showProduct: true,
-                    // Object to store the user's order information
-                    order: {
-                        firstName: '',
-                        lastName: '',
-                        address: '',
-                        city: '',
-                        zip: '',
-                        state: '',
-                        method: 'Home',
-                        gift: false,
-                    },
-                    states: {
-                        AL: 'Alabama',
-                        AR: 'Arizona',
-                        CA: 'California',
-                        NV: 'Nevada',
-                    },
-                    sitename: 'After School Club',
-                    products: [],
-                    cart: [],
-                    searchQuery: '',
-                    sortAttribute: 'price', 
-                    sortOrder: 'asc',
-                },
+    </header>
 
-                mounted() {
-                    // When the component is loaded into the webpage it automatically call the fetchProducts method to load the product data.
-                    this.fetchProducts();
-                },
 
-                methods: {
+    <main>
 
-                    // Fetches product data from the API and stores it in the 'products' array
-                    fetchProducts() {
-                        fetch('https://afterschoolclub-backend.onrender.com/products')
-                            .then(response => response.json())
-                            .then(data => {
-                                this.products = data;
-                            })
-                            .catch(error => console.error('Error fetching products:', error));
-                    },
+        <!-- ==================== HERO ==================== -->
 
-                    // Adds a product to the cart by pushing its ID to the 'cart' array
-                    addToCart(product) {
-                        this.cart.push(product.id);
-                    },
+        <section class="hero-shell">
 
-                    // Toggles between product listing and the checkout page based on the cart contents
-                    showCheckout() {
-                        if (this.cart.length === 0) {
-                            alert("Your cart is empty. Please add items to the cart before proceeding to checkout.");
-                        } else {
-                            this.showProduct = false;  // Show checkout page
-                            console.log("Navigating to checkout");
-                        }
-                    },
+            <div class="hero container">
 
-                    // Displays the product listing page when called
-                    showProducts() {
-                            this.showProduct = true;  // Show product listing page
-                        },
-                    
-                    // Submits the order data to the server (POST request)
-                    submitForm() {
-                        fetch('https://afterschoolclub-backend.onrender.com/orders', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify(this.order),
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            alert('Order submitted successfully! Order ID: ' + data.orderId);
-                            this.updateProductAvailability();
-                        })
-                        .catch(error => console.error('Error submitting order:', error));
-                    },
+                <div class="hero-content">
 
-                    // Updates the product availability after order submission
-                    updateProductAvailability() {
-                        this.cart.forEach(productId => {
-                            const product = this.products.find(p => p.id === productId);
-                            if (product && product.availableInventory > 0) {
-                                product.availableInventory--;// Decrease available inventory
-                                this.updateProduct(product.id, { availableInventory: product.availableInventory });
-                            } else {
-                                console.warn(`Product with ID ${productId} is out of stock.`);
-                            }
-                        });
-                    },
+                    <span class="eyebrow">
 
-                    // Sends a PUT request to update product information on the server
-                    updateProduct(productId, updateData) {
-                        fetch(`https://afterschoolclub-backend.onrender.com/products/${productId}`, {
-                            method: 'PUT',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify(updateData),
-                        })
-                        .then(response => response.json())
-                        .then(data => console.log('Product updated:', data))
-                        .catch(error => console.error('Error updating product:', error));
-                    },
+                        <i class="fa-solid fa-sparkles"></i>
 
-                    // Checks if a product can be added to the cart based on its available inventory
-                    canAddToCart(product) {
-                        return product.availableInventory > this.cartCount(product.id);
-                    },
+                        Discover something new
 
-                    // Counts how many times a product is in the cart
-                    cartCount(id) {
-                        return this.cart.filter(itemId => itemId === id).length;
-                    },
+                    </span>
 
-                    // Sorts products based on selected attribute and order, also applies search filter 
-                    sortProducts() {
-                        let filteredProducts = this.products.filter(product => product.title.toLowerCase().startsWith(this.searchQuery.toLowerCase()));
 
-                        filteredProducts.sort((a, b) => {
-                            let result = 0;
-                            if (this.sortAttribute === 'price') result = a.price - b.price;// Sort by price
-                            else if (this.sortAttribute === 'rating') result = a.rating - b.rating;
-                            else if (this.sortAttribute === 'location') result = a.location.localeCompare(b.location);
-                            else if (this.sortAttribute === 'availability') result = a.availableInventory - b.availableInventory;
+                    <h1>
 
-                            return this.sortOrder === 'asc' ? result : -result;
-                        });
+                        Make afternoons
+                        <span>
+                            count.
+                        </span>
 
-                        return filteredProducts;
-                    },
-                },
+                    </h1>
 
-                computed: {
 
-                    // Filters products based on the search query, returning only those whose title includes the search string
-                    filteredProducts() {
-                        return this.products.filter(product => 
-                            product.title.toLowerCase().includes(this.searchQuery.toLowerCase())
+                    <p class="hero-lead">
+
+                        Browse creative, active and
+                        technology-focused clubs designed
+                        to turn after-school time into
+                        something memorable.
+
+                    </p>
+
+
+                    <div class="hero-actions">
+
+                        <button
+                            class="primary-button"
+                            type="button"
+                            v-on:click="showProducts"
+                        >
+
+                            Explore activities
+
+                            <i class="fa-solid fa-arrow-down"></i>
+
+                        </button>
+
+
+                        <button
+                            class="secondary-button"
+                            type="button"
+                            v-on:click="showCheckout"
+                            :disabled="cartItemCount === 0"
+                        >
+
+                            View cart
+
+                            <span>
+                                {{ cartItemCount }}
+                            </span>
+
+                        </button>
+
+                    </div>
+
+
+                    <div
+                        class="hero-stats"
+                        aria-label="Catalogue highlights"
+                    >
+
+                        <div class="stat-item">
+
+                            <strong>
+                                {{ products.length || '—' }}
+                            </strong>
+
+                            <span>
+                                clubs available
+                            </span>
+
+                        </div>
+
+
+                        <div class="stat-item">
+
+                            <strong>
+                                {{ availableClubCount }}
+                            </strong>
+
+                            <span>
+                                ready to join
+                            </span>
+
+                        </div>
+
+
+                        <div class="stat-item">
+
+                            <strong>
+
+                                4.8
+                                <span class="stat-star">
+                                    ★
+                                </span>
+
+                            </strong>
+
+                            <span>
+                                average rating
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div
+                    class="hero-art"
+                    aria-hidden="true"
+                >
+
+                    <div class="hero-orbit orbit-one"></div>
+
+                    <div class="hero-orbit orbit-two"></div>
+
+                    <div class="hero-orbit orbit-three"></div>
+
+
+                    <div class="hero-core">
+
+                        <i class="fa-solid fa-compass"></i>
+
+                    </div>
+
+
+                    <span class="floating-badge badge-top">
+
+                        <i class="fa-solid fa-palette"></i>
+
+                        Creative
+
+                    </span>
+
+
+                    <span class="floating-badge badge-right">
+
+                        <i class="fa-solid fa-futbol"></i>
+
+                        Active
+
+                    </span>
+
+
+                    <span class="floating-badge badge-bottom">
+
+                        <i class="fa-solid fa-code"></i>
+
+                        Curious
+
+                    </span>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ==================== CATALOGUE ==================== -->
+
+        <section
+            id="products"
+            class="catalogue-section container"
+            v-if="showProduct"
+        >
+
+            <div class="section-heading">
+
+                <div>
+
+                    <span class="section-kicker">
+                        The catalogue
+                    </span>
+
+                    <h2>
+                        Find your next favourite club.
+                    </h2>
+
+                    <p>
+                        Search the catalogue or sort it your way.
+                    </p>
+
+                </div>
+
+
+                <div class="catalogue-count">
+
+                    <strong>
+                        {{ sortedProducts.length }}
+                    </strong>
+
+                    <span>
+                        matching activities
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <div class="toolbar">
+
+                <label
+                    class="search-box"
+                    aria-label="Search activities"
+                >
+
+                    <i class="fa-solid fa-magnifying-glass"></i>
+
+                    <input
+                        type="search"
+                        placeholder="Search clubs, activities..."
+                        v-model.trim="searchQuery"
+                    >
+
+
+                    <button
+                        v-if="searchQuery"
+                        class="clear-search"
+                        type="button"
+                        aria-label="Clear search"
+                        v-on:click="searchQuery = ''"
+                    >
+
+                        <i class="fa-solid fa-xmark"></i>
+
+                    </button>
+
+                </label>
+
+
+                <div class="sort-group">
+
+                    <label for="sortAttribute">
+                        Sort
+                    </label>
+
+
+                    <select
+                        id="sortAttribute"
+                        v-model="sortAttribute"
+                    >
+
+                        <option value="price">
+                            Price
+                        </option>
+
+                        <option value="rating">
+                            Rating
+                        </option>
+
+                        <option value="location">
+                            Location
+                        </option>
+
+                        <option value="availability">
+                            Availability
+                        </option>
+
+                    </select>
+
+
+                    <select
+                        id="sortOrder"
+                        v-model="sortOrder"
+                        aria-label="Sort order"
+                    >
+
+                        <option value="asc">
+                            Ascending
+                        </option>
+
+                        <option value="desc">
+                            Descending
+                        </option>
+
+                    </select>
+
+                </div>
+
+            </div>
+
+
+            <!-- Loading -->
+
+            <div
+                v-if="loading"
+                class="state-card"
+            >
+
+                <div class="loading-spinner"></div>
+
+                <h3>
+                    Loading activities...
+                </h3>
+
+                <p>
+                    Connecting to the After School Club catalogue.
+                </p>
+
+            </div>
+
+
+            <!-- Error -->
+
+            <div
+                v-else-if="loadError"
+                class="state-card error-state"
+            >
+
+                <div class="state-icon">
+
+                    <i class="fa-solid fa-cloud-arrow-down"></i>
+
+                </div>
+
+                <h3>
+                    We couldn't load the catalogue.
+                </h3>
+
+                <p>
+                    {{ loadError }}
+                </p>
+
+                <button
+                    class="primary-button small"
+                    type="button"
+                    v-on:click="fetchProducts"
+                >
+
+                    Try again
+
+                </button>
+
+            </div>
+
+
+            <!-- Empty -->
+
+            <div
+                v-else-if="sortedProducts.length === 0"
+                class="state-card empty-state"
+            >
+
+                <div class="state-icon">
+
+                    <i class="fa-solid fa-binoculars"></i>
+
+                </div>
+
+                <h3>
+                    No activities found.
+                </h3>
+
+                <p>
+                    Try a different search term and see what turns up.
+                </p>
+
+                <button
+                    class="secondary-button small"
+                    type="button"
+                    v-on:click="searchQuery = ''"
+                >
+
+                    Clear search
+
+                </button>
+
+            </div>
+
+
+            <!-- Products -->
+
+            <div
+                v-else
+                class="products-grid"
+            >
+
+                <article
+                    v-for="product in sortedProducts"
+                    :key="product._id || product.id"
+                    class="product-card"
+                >
+
+                    <div class="product-image-wrap">
+
+                        <img
+                            class="product-image"
+                            :src="imageUrl(product)"
+                            :alt="product.title"
+                            loading="lazy"
+                            v-on:error="imageFallback"
+                        >
+
+
+                        <span class="category-pill">
+
+                            <i
+                                :class="categoryIcon(product.title)"
+                            ></i>
+
+                            {{ categoryLabel(product.title) }}
+
+                        </span>
+
+
+                        <span class="rating-badge">
+
+                            <i class="fa-solid fa-star"></i>
+
+                            {{ product.rating }}
+
+                        </span>
+
+                    </div>
+
+
+                    <div class="product-card-body">
+
+                        <div class="product-location">
+
+                            <i class="fa-solid fa-location-dot"></i>
+
+                            {{ product.location }}
+
+                        </div>
+
+
+                        <h3>
+                            {{ product.title }}
+                        </h3>
+
+
+                        <p
+                            class="product-description"
+                            v-html="product.description"
+                        ></p>
+
+
+                        <div class="product-meta">
+
+                            <div class="price-block">
+
+                                <span>
+                                    From
+                                </span>
+
+                                <strong>
+                                    ${{ Number(product.price).toFixed(2) }}
+                                </strong>
+
+                            </div>
+
+
+                            <div
+                                class="stock-block"
+                                :class="stockClass(product)"
+                            >
+
+                                <span class="stock-dot"></span>
+
+                                <span>
+                                    {{ stockMessage(product) }}
+                                </span>
+
+                            </div>
+
+                        </div>
+
+
+                        <div
+                            class="card-rating"
+                            aria-label="Product rating"
+                        >
+
+                            <span
+                                v-for="n in 5"
+                                :key="n"
+                                :class="n <= Number(product.rating)
+                                    ? 'star filled'
+                                    : 'star'"
+                            >
+
+                                ★
+
+                            </span>
+
+
+                            <span class="rating-number">
+
+                                {{ product.rating }}/5
+
+                            </span>
+
+                        </div>
+
+
+                        <button
+                            class="add-button"
+                            type="button"
+                            v-on:click="addToCart(product)"
+                            :disabled="!canAddToCart(product)"
+                        >
+
+                            <span>
+
+                                {{
+                                    canAddToCart(product)
+                                    ? 'Add to cart'
+                                    : 'Sold out'
+                                }}
+
+                            </span>
+
+
+                            <i
+                                :class="canAddToCart(product)
+                                    ? 'fa-solid fa-plus'
+                                    : 'fa-solid fa-ban'"
+                            ></i>
+
+                        </button>
+
+                    </div>
+
+                </article>
+
+            </div>
+
+        </section>
+
+
+        <!-- ==================== ABOUT ==================== -->
+
+        <section
+            id="about"
+            class="about-section container"
+            v-if="showProduct"
+        >
+
+            <div class="about-card">
+
+                <div class="about-icon">
+
+                    <i class="fa-solid fa-lightbulb"></i>
+
+                </div>
+
+
+                <div>
+
+                    <span class="section-kicker">
+                        Why After School Club?
+                    </span>
+
+                    <h2>
+                        A little structure.
+                        A lot more possibility.
+                    </h2>
+
+                    <p>
+
+                        From football and yoga to programming,
+                        photography and creative writing,
+                        this catalogue brings a range of
+                        after-school experiences into one
+                        simple place.
+
+                    </p>
+
+                </div>
+
+
+                <button
+                    class="text-button"
+                    type="button"
+                    v-on:click="showProducts"
+                >
+
+                    Browse clubs
+
+                    <i class="fa-solid fa-arrow-right"></i>
+
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <!-- ==================== CHECKOUT ==================== -->
+
+        <section
+            id="checkout"
+            class="checkout-section container"
+            v-else
+        >
+
+            <div class="checkout-header">
+
+                <button
+                    class="back-link"
+                    type="button"
+                    v-on:click="showProducts"
+                >
+
+                    <i class="fa-solid fa-arrow-left"></i>
+
+                    Back to activities
+
+                </button>
+
+
+                <span class="section-kicker">
+                    Checkout
+                </span>
+
+
+                <h2>
+                    Ready to make it official?
+                </h2>
+
+
+                <p>
+                    Review your selections, add your details
+                    and place the order.
+                </p>
+
+            </div>
+
+
+            <div class="checkout-layout">
+
+
+                <!-- LEFT -->
+
+                <div class="checkout-main">
+
+
+                    <!-- ACTIVITIES -->
+
+                    <div class="panel">
+
+                        <div class="panel-heading">
+
+                            <div>
+
+                                <span class="step-number">
+                                    01
+                                </span>
+
+                                <div>
+
+                                    <h3>
+                                        Your activities
+                                    </h3>
+
+                                    <p>
+                                        Everything currently in your cart.
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+
+                            <span class="panel-count">
+
+                                {{ cartItemCount }}
+
+                                item{{ cartItemCount === 1 ? '' : 's' }}
+
+                            </span>
+
+                        </div>
+
+
+                        <div class="cart-list">
+
+                            <article
+                                v-for="product in cartProducts"
+                                :key="product.id"
+                                class="cart-row"
+                            >
+
+                                <img
+                                    class="cart-thumb"
+                                    :src="imageUrl(product)"
+                                    :alt="product.title"
+                                    v-on:error="imageFallback"
+                                >
+
+
+                                <div class="cart-details">
+
+                                    <h4>
+                                        {{ product.title }}
+                                    </h4>
+
+                                    <span>
+                                        {{ product.location }}
+                                    </span>
+
+                                    <strong>
+                                        ${{ Number(product.price).toFixed(2) }}
+                                    </strong>
+
+                                </div>
+
+
+                                <div
+                                    class="quantity-control"
+                                    aria-label="Quantity"
+                                >
+
+                                    <button
+                                        type="button"
+                                        v-on:click="decreaseCart(product.id)"
+                                        aria-label="Decrease quantity"
+                                    >
+                                        −
+                                    </button>
+
+
+                                    <span>
+                                        {{ cartCount(product.id) }}
+                                    </span>
+
+
+                                    <button
+                                        type="button"
+                                        v-on:click="addToCart(product)"
+                                        :disabled="!canAddToCart(product)"
+                                        aria-label="Increase quantity"
+                                    >
+                                        +
+                                    </button>
+
+                                </div>
+
+
+                                <div class="cart-total">
+
+                                    <strong>
+                                        ${{
+                                            (
+                                                Number(product.price)
+                                                *
+                                                cartCount(product.id)
+                                            ).toFixed(2)
+                                        }}
+                                    </strong>
+
+
+                                    <button
+                                        class="remove-link"
+                                        type="button"
+                                        v-on:click="removeFromCart(product.id)"
+                                    >
+
+                                        Remove
+
+                                    </button>
+
+                                </div>
+
+                            </article>
+
+                        </div>
+
+
+                        <button
+                            v-if="cartItemCount > 0"
+                            class="clear-cart"
+                            type="button"
+                            v-on:click="clearCart"
+                        >
+
+                            <i class="fa-regular fa-trash-can"></i>
+
+                            Clear cart
+
+                        </button>
+
+                    </div>
+
+
+                    <!-- CUSTOMER DETAILS -->
+
+                    <div class="panel">
+
+                        <div class="panel-heading">
+
+                            <div>
+
+                                <span class="step-number">
+                                    02
+                                </span>
+
+                                <div>
+
+                                    <h3>
+                                        Customer details
+                                    </h3>
+
+                                    <p>
+                                        Tell us where the order should go.
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <form
+                            class="checkout-form"
+                            v-on:submit.prevent="submitForm"
+                        >
+
+
+                            <div class="form-grid two-columns">
+
+                                <label class="form-field">
+
+                                    <span>
+                                        First name
+                                    </span>
+
+                                    <input
+                                        v-model.trim="order.firstName"
+                                        type="text"
+                                        placeholder="Elias"
+                                        required
+                                    >
+
+                                </label>
+
+
+                                <label class="form-field">
+
+                                    <span>
+                                        Last name
+                                    </span>
+
+                                    <input
+                                        v-model.trim="order.lastName"
+                                        type="text"
+                                        placeholder="Paul"
+                                        required
+                                    >
+
+                                </label>
+
+                            </div>
+
+
+                            <label class="form-field">
+
+                                <span>
+                                    Address
+                                </span>
+
+                                <input
+                                    v-model.trim="order.address"
+                                    type="text"
+                                    placeholder="123 Club Street"
+                                    required
+                                >
+
+                            </label>
+
+
+                            <div class="form-grid two-columns">
+
+                                <label class="form-field">
+
+                                    <span>
+                                        City
+                                    </span>
+
+                                    <input
+                                        v-model.trim="order.city"
+                                        type="text"
+                                        placeholder="Dubai"
+                                        required
+                                    >
+
+                                </label>
+
+
+                                <label class="form-field">
+
+                                    <span>
+                                        State / Region
+                                    </span>
+
+                                    <select
+                                        v-model="order.state"
+                                        required
+                                    >
+
+                                        <option
+                                            disabled
+                                            value=""
+                                        >
+                                            Select a state
+                                        </option>
+
+
+                                        <option
+                                            v-for="(state, key) in states"
+                                            :key="key"
+                                            :value="state"
+                                        >
+
+                                            {{ state }}
+
+                                        </option>
+
+                                    </select>
+
+                                </label>
+
+                            </div>
+
+
+                            <div class="form-grid two-columns">
+
+                                <label class="form-field">
+
+                                    <span>
+                                        Zip / Postal code
+                                    </span>
+
+                                    <input
+                                        v-model.trim="order.zip"
+                                        type="text"
+                                        placeholder="00000"
+                                        required
+                                    >
+
+                                </label>
+
+
+                                <div class="delivery-choice">
+
+                                    <span class="field-label">
+                                        Delivery method
+                                    </span>
+
+
+                                    <div class="radio-group">
+
+
+                                        <label
+                                            :class="[
+                                                'radio-option',
+                                                {
+                                                    active:
+                                                        order.method === 'Home'
+                                                }
+                                            ]"
+                                        >
+
+                                            <input
+                                                id="home"
+                                                type="radio"
+                                                value="Home"
+                                                v-model="order.method"
+                                            >
+
+
+                                            <span>
+
+                                                <i class="fa-solid fa-house"></i>
+
+                                                Home
+
+                                            </span>
+
+                                        </label>
+
+
+                                        <label
+                                            :class="[
+                                                'radio-option',
+                                                {
+                                                    active:
+                                                        order.method === 'Business'
+                                                }
+                                            ]"
+                                        >
+
+                                            <input
+                                                id="business"
+                                                type="radio"
+                                                value="Business"
+                                                v-model="order.method"
+                                            >
+
+
+                                            <span>
+
+                                                <i class="fa-solid fa-building"></i>
+
+                                                Business
+
+                                            </span>
+
+                                        </label>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <label class="gift-option">
+
+                                <input
+                                    type="checkbox"
+                                    v-model="order.gift"
+                                >
+
+
+                                <span class="checkmark">
+
+                                    <i class="fa-solid fa-check"></i>
+
+                                </span>
+
+
+                                <span>
+
+                                    <strong>
+                                        Ship as a gift
+                                    </strong>
+
+                                    <small>
+                                        Mark this order as a gift.
+                                    </small>
+
+                                </span>
+
+                            </label>
+
+
+                            <div class="order-preview">
+
+                                <div>
+
+                                    <span>
+                                        Recipient
+                                    </span>
+
+                                    <strong>
+                                        {{ order.firstName || 'Your' }}
+                                        {{ order.lastName || 'name' }}
+                                    </strong>
+
+                                </div>
+
+
+                                <div>
+
+                                    <span>
+                                        Location
+                                    </span>
+
+                                    <strong>
+                                        {{ order.city || 'City' }}
+                                    </strong>
+
+                                </div>
+
+
+                                <div>
+
+                                    <span>
+                                        Delivery
+                                    </span>
+
+                                    <strong>
+                                        {{ order.method }}
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+
+                            <button
+                                class="place-order-button"
+                                type="submit"
+                                :disabled="
+                                    submitting ||
+                                    cartItemCount === 0
+                                "
+                            >
+
+                                <span v-if="!submitting">
+
+                                    Place order ·
+                                    ${{ totalPrice.toFixed(2) }}
+
+                                </span>
+
+
+                                <span v-else>
+
+                                    <i class="fa-solid fa-circle-notch fa-spin"></i>
+
+                                    Processing...
+
+                                </span>
+
+
+                                <i
+                                    v-if="!submitting"
+                                    class="fa-solid fa-arrow-right"
+                                ></i>
+
+                            </button>
+
+
+                            <p
+                                v-if="submitError"
+                                class="form-error"
+                            >
+                                {{ submitError }}
+                            </p>
+
+                        </form>
+
+                    </div>
+
+                </div>
+
+
+                <!-- RIGHT -->
+
+                <aside class="checkout-sidebar">
+
+
+                    <div class="summary-card">
+
+                        <span class="section-kicker">
+                            Order summary
+                        </span>
+
+                        <h3>
+                            Your total
+                        </h3>
+
+
+                        <div class="summary-lines">
+
+                            <div
+                                v-for="product in cartProducts"
+                                :key="'summary-' + product.id"
+                            >
+
+                                <span>
+
+                                    {{ product.title }}
+                                    ×
+                                    {{ cartCount(product.id) }}
+
+                                </span>
+
+
+                                <strong>
+
+                                    ${{
+                                        (
+                                            Number(product.price)
+                                            *
+                                            cartCount(product.id)
+                                        ).toFixed(2)
+                                    }}
+
+                                </strong>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="summary-divider"></div>
+
+
+                        <div class="summary-total">
+
+                            <span>
+                                Total
+                            </span>
+
+                            <strong>
+                                ${{ totalPrice.toFixed(2) }}
+                            </strong>
+
+                        </div>
+
+
+                        <p class="summary-note">
+
+                            <i class="fa-solid fa-shield-heart"></i>
+
+                            Your order is sent securely
+                            to the project API.
+
+                        </p>
+
+                    </div>
+
+
+                    <div class="trust-card">
+
+                        <div>
+
+                            <i class="fa-solid fa-bolt"></i>
+
+                        </div>
+
+
+                        <div>
+
+                            <strong>
+                                Made for discovery
+                            </strong>
+
+                            <p>
+
+                                One place to browse,
+                                compare and order
+                                after-school activities.
+
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </aside>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- ==================== FOOTER ==================== -->
+
+    <footer class="site-footer">
+
+        <div class="container footer-inner">
+
+            <div>
+
+                <strong>
+                    After School Club
+                </strong>
+
+                <span>
+                    Explore. Learn. Create.
+                </span>
+
+            </div>
+
+
+            <span class="footer-note">
+                University project · Full-stack web store
+            </span>
+
+        </div>
+
+    </footer>
+
+</div>
+
+
+<script>
+
+    const API_BASE =
+        'https://afterschoolclub-backend.onrender.com';
+
+
+    var webstore = new Vue({
+
+        el: '#app',
+
+
+        data: {
+
+            showProduct: true,
+
+            loading: true,
+
+            loadError: '',
+
+            submitting: false,
+
+            submitError: '',
+
+
+            order: {
+
+                firstName: '',
+
+                lastName: '',
+
+                address: '',
+
+                city: '',
+
+                zip: '',
+
+                state: '',
+
+                method: 'Home',
+
+                gift: false
+
+            },
+
+
+            states: {
+
+                AL: 'Alabama',
+
+                AR: 'Arizona',
+
+                CA: 'California',
+
+                NV: 'Nevada'
+
+            },
+
+
+            sitename: 'After School Club',
+
+            products: [],
+
+            cart: [],
+
+            searchQuery: '',
+
+            sortAttribute: 'price',
+
+            sortOrder: 'asc'
+
+        },
+
+
+        mounted() {
+
+            this.fetchProducts();
+
+        },
+
+
+        methods: {
+
+
+            async fetchProducts() {
+
+                this.loading = true;
+
+                this.loadError = '';
+
+
+                try {
+
+                    const response =
+                        await fetch(`${API_BASE}/products`);
+
+
+                    if (!response.ok) {
+
+                        throw new Error(
+                            'The catalogue service returned an error.'
                         );
-                    },
 
-                    sortedProducts() {
-                        return this.sortProducts();
-                    },
-                    
-                    // Returns the total count of items in the cart
-                    cartItemCount() {
-                        return this.cart.length;
-                    },
+                    }
 
-                    totalPrice() {
-                        return this.cart.reduce((sum, productId) => {
-                            const product = this.products.find(p => p.id === productId);
-                            return sum + (product ? product.price : 0);
-                        }, 0);
-                    },
 
-                    // Returns a list of products in the cart, including the quantity (count) of each item
-                    cartProducts() {
-                        const cartItems = [];
-                        this.cart.forEach(productId => {
-                            const product = this.products.find(p => p.id === productId);
-                            if (product && !cartItems.some(item => item.id === product.id)) {
-                                cartItems.push({ ...product, count: this.cartCount(product.id) });
-                            }
-                        });
-                        return cartItems;
-                    },
+                    const data =
+                        await response.json();
+
+
+                    if (!Array.isArray(data)) {
+
+                        throw new Error(
+                            'The catalogue response was not valid.'
+                        );
+
+                    }
+
+
+                    this.products = data;
+
                 }
-            });
-        </script>
-    </body>
+
+                catch (error) {
+
+                    console.error(
+                        'Error fetching products:',
+                        error
+                    );
+
+                    this.loadError =
+                        'Please check the connection and try again.';
+
+                }
+
+                finally {
+
+                    this.loading = false;
+
+                }
+
+            },
+
+
+            imageUrl(product) {
+
+                const rawImage =
+                    product && product.image
+                        ? product.image
+                        : '';
+
+
+                const fileName =
+                    rawImage.split('/').pop();
+
+
+                return (
+                    `${API_BASE}/images/` +
+                    encodeURIComponent(fileName)
+                );
+
+            },
+
+
+            imageFallback(event) {
+
+                event.target.classList.add(
+                    'image-failed'
+                );
+
+            },
+
+
+            showProducts() {
+
+                this.showProduct = true;
+
+                this.submitError = '';
+
+
+                this.$nextTick(() => {
+
+                    window.scrollTo({
+
+                        top: 0,
+
+                        behavior: 'smooth'
+
+                    });
+
+                });
+
+            },
+
+
+            showCheckout() {
+
+                if (this.cart.length === 0) {
+
+                    alert(
+                        'Your cart is empty. Add an activity before checking out.'
+                    );
+
+                    return;
+
+                }
+
+
+                this.showProduct = false;
+
+                this.submitError = '';
+
+
+                this.$nextTick(() => {
+
+                    document
+                        .getElementById('checkout')
+                        ?.scrollIntoView({
+
+                            behavior: 'smooth',
+
+                            block: 'start'
+
+                        });
+
+                });
+
+            },
+
+
+            scrollToAbout() {
+
+                this.showProduct = true;
+
+
+                this.$nextTick(() => {
+
+                    document
+                        .getElementById('about')
+                        ?.scrollIntoView({
+
+                            behavior: 'smooth'
+
+                        });
+
+                });
+
+            },
+
+
+            addToCart(product) {
+
+                if (!this.canAddToCart(product)) {
+                    return;
+                }
+
+                this.cart.push(product.id);
+
+            },
+
+
+            decreaseCart(productId) {
+
+                const index =
+                    this.cart.lastIndexOf(productId);
+
+
+                if (index !== -1) {
+
+                    this.cart.splice(index, 1);
+
+                }
+
+            },
+
+
+            removeFromCart(productId) {
+
+                this.cart =
+                    this.cart.filter(
+                        id => id !== productId
+                    );
+
+            },
+
+
+            clearCart() {
+
+                this.cart = [];
+
+                this.showProduct = true;
+
+
+                this.$nextTick(() => {
+
+                    window.scrollTo({
+
+                        top: 0,
+
+                        behavior: 'smooth'
+
+                    });
+
+                });
+
+            },
+
+
+            async submitForm() {
+
+                if (this.cart.length === 0) {
+                    return;
+                }
+
+
+                this.submitting = true;
+
+                this.submitError = '';
+
+
+                const items =
+                    this.cartProducts.map(product => ({
+
+                        productId: product.id,
+
+                        databaseId:
+                            product._id || null,
+
+                        title:
+                            product.title,
+
+                        price:
+                            Number(product.price),
+
+                        quantity:
+                            this.cartCount(product.id),
+
+                        location:
+                            product.location
+
+                    }));
+
+
+                const orderPayload = {
+
+                    ...this.order,
+
+                    items,
+
+                    total:
+                        Number(
+                            this.totalPrice.toFixed(2)
+                        ),
+
+                    createdAt:
+                        new Date().toISOString()
+
+                };
+
+
+                try {
+
+                    const response =
+                        await fetch(
+                            `${API_BASE}/orders`,
+                            {
+
+                                method: 'POST',
+
+                                headers: {
+
+                                    'Content-Type':
+                                        'application/json'
+
+                                },
+
+                                body:
+                                    JSON.stringify(
+                                        orderPayload
+                                    )
+
+                            }
+                        );
+
+
+                    const data =
+                        await response.json();
+
+
+                    if (!response.ok) {
+
+                        throw new Error(
+                            data.error ||
+                            'Order could not be submitted.'
+                        );
+
+                    }
+
+
+                    await this.updateProductAvailability();
+
+
+                    alert(
+                        `Order submitted successfully!\nOrder ID: ${data.orderId}`
+                    );
+
+
+                    this.resetOrder();
+
+                    this.cart = [];
+
+                    this.showProduct = true;
+
+
+                    await this.fetchProducts();
+
+
+                    window.scrollTo({
+
+                        top: 0,
+
+                        behavior: 'smooth'
+
+                    });
+
+                }
+
+                catch (error) {
+
+                    console.error(
+                        'Error submitting order:',
+                        error
+                    );
+
+
+                    this.submitError =
+                        error.message ||
+                        'Something went wrong while placing the order.';
+
+                }
+
+                finally {
+
+                    this.submitting = false;
+
+                }
+
+            },
+
+
+            async updateProductAvailability() {
+
+                const updates =
+                    this.cartProducts.map(
+                        async product => {
+
+                            if (!product._id) {
+                                return;
+                            }
+
+
+                            const purchasedQuantity =
+                                this.cartCount(product.id);
+
+
+                            const remainingInventory =
+                                Math.max(
+                                    0,
+                                    Number(
+                                        product.availableInventory
+                                    ) -
+                                    purchasedQuantity
+                                );
+
+
+                            await this.updateProduct(
+                                product._id,
+                                {
+                                    availableInventory:
+                                        remainingInventory
+                                }
+                            );
+
+                        }
+                    );
+
+
+                await Promise.all(updates);
+
+            },
+
+
+            async updateProduct(
+                productId,
+                updateData
+            ) {
+
+                const response =
+                    await fetch(
+                        `${API_BASE}/products/` +
+                        encodeURIComponent(productId),
+                        {
+
+                            method: 'PUT',
+
+                            headers: {
+
+                                'Content-Type':
+                                    'application/json'
+
+                            },
+
+                            body:
+                                JSON.stringify(
+                                    updateData
+                                )
+
+                        }
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        data.error ||
+                        'Inventory could not be updated.'
+                    );
+
+                }
+
+
+                return data;
+
+            },
+
+
+            canAddToCart(product) {
+
+                return (
+                    Number(
+                        product.availableInventory
+                    ) >
+                    this.cartCount(product.id)
+                );
+
+            },
+
+
+            cartCount(id) {
+
+                return this.cart.filter(
+                    itemId => itemId === id
+                ).length;
+
+            },
+
+
+            resetOrder() {
+
+                this.order = {
+
+                    firstName: '',
+
+                    lastName: '',
+
+                    address: '',
+
+                    city: '',
+
+                    zip: '',
+
+                    state: '',
+
+                    method: 'Home',
+
+                    gift: false
+
+                };
+
+            },
+
+
+            stockMessage(product) {
+
+                const remaining =
+                    Math.max(
+
+                        0,
+
+                        Number(
+                            product.availableInventory
+                        ) -
+                        this.cartCount(product.id)
+
+                    );
+
+
+                if (remaining === 0) {
+
+                    return 'Sold out';
+
+                }
+
+
+                if (remaining < 5) {
+
+                    return `${remaining} left`;
+
+                }
+
+
+                return 'Available';
+
+            },
+
+
+            stockClass(product) {
+
+                const remaining =
+                    Math.max(
+
+                        0,
+
+                        Number(
+                            product.availableInventory
+                        ) -
+                        this.cartCount(product.id)
+
+                    );
+
+
+                if (remaining === 0) {
+
+                    return 'stock-empty';
+
+                }
+
+
+                if (remaining < 5) {
+
+                    return 'stock-low';
+
+                }
+
+
+                return 'stock-good';
+
+            },
+
+
+            categoryLabel(title) {
+
+                const name =
+                    title.toLowerCase();
+
+
+                if (
+                    name.includes('football') ||
+                    name.includes('pe')
+                ) {
+
+                    return 'Active';
+
+                }
+
+
+                if (
+                    name.includes('programming') ||
+                    name.includes('gaming')
+                ) {
+
+                    return 'Tech';
+
+                }
+
+
+                if (
+                    name.includes('creative') ||
+                    name.includes('arts') ||
+                    name.includes('photography') ||
+                    name.includes('drama')
+                ) {
+
+                    return 'Creative';
+
+                }
+
+
+                return 'Wellbeing';
+
+            },
+
+
+            categoryIcon(title) {
+
+                const name =
+                    title.toLowerCase();
+
+
+                if (
+                    name.includes('football') ||
+                    name.includes('pe')
+                ) {
+
+                    return 'fa-solid fa-futbol';
+
+                }
+
+
+                if (
+                    name.includes('programming')
+                ) {
+
+                    return 'fa-solid fa-code';
+
+                }
+
+
+                if (
+                    name.includes('gaming')
+                ) {
+
+                    return 'fa-solid fa-gamepad';
+
+                }
+
+
+                if (
+                    name.includes('photography')
+                ) {
+
+                    return 'fa-solid fa-camera';
+
+                }
+
+
+                if (
+                    name.includes('drama')
+                ) {
+
+                    return 'fa-solid fa-masks-theater';
+
+                }
+
+
+                if (
+                    name.includes('arts') ||
+                    name.includes('creative')
+                ) {
+
+                    return 'fa-solid fa-palette';
+
+                }
+
+
+                if (
+                    name.includes('yoga')
+                ) {
+
+                    return 'fa-solid fa-leaf';
+
+                }
+
+
+                if (
+                    name.includes('writing')
+                ) {
+
+                    return 'fa-solid fa-pen-nib';
+
+                }
+
+
+                return 'fa-solid fa-star';
+
+            }
+
+        },
+
+
+        computed: {
+
+
+            filteredProducts() {
+
+                const query =
+                    this.searchQuery.toLowerCase();
+
+
+                return this.products.filter(
+                    product => {
+
+                        if (!query) {
+                            return true;
+                        }
+
+
+                        return [
+
+                            product.title,
+
+                            product.description,
+
+                            product.location
+
+                        ]
+
+                            .filter(Boolean)
+
+                            .join(' ')
+
+                            .toLowerCase()
+
+                            .includes(query);
+
+                    }
+                );
+
+            },
+
+
+            sortedProducts() {
+
+                const products =
+                    [...this.filteredProducts];
+
+
+                products.sort(
+                    (a, b) => {
+
+                        let result = 0;
+
+
+                        if (
+                            this.sortAttribute ===
+                            'price'
+                        ) {
+
+                            result =
+                                Number(a.price) -
+                                Number(b.price);
+
+                        }
+
+
+                        else if (
+                            this.sortAttribute ===
+                            'rating'
+                        ) {
+
+                            result =
+                                Number(a.rating) -
+                                Number(b.rating);
+
+                        }
+
+
+                        else if (
+                            this.sortAttribute ===
+                            'location'
+                        ) {
+
+                            result =
+                                String(a.location)
+                                .localeCompare(
+                                    String(b.location)
+                                );
+
+                        }
+
+
+                        else if (
+                            this.sortAttribute ===
+                            'availability'
+                        ) {
+
+                            result =
+                                Number(
+                                    a.availableInventory
+                                ) -
+                                Number(
+                                    b.availableInventory
+                                );
+
+                        }
+
+
+                        return (
+                            this.sortOrder === 'asc'
+                                ? result
+                                : -result
+                        );
+
+                    }
+                );
+
+
+                return products;
+
+            },
+
+
+            cartItemCount() {
+
+                return this.cart.length;
+
+            },
+
+
+            totalPrice() {
+
+                return this.cart.reduce(
+                    (sum, productId) => {
+
+                        const product =
+                            this.products.find(
+                                p =>
+                                    p.id === productId
+                            );
+
+
+                        return (
+                            sum +
+                            (
+                                product
+                                    ? Number(product.price)
+                                    : 0
+                            )
+                        );
+
+                    },
+                    0
+                );
+
+            },
+
+
+            cartProducts() {
+
+                const uniqueProducts = [];
+
+
+                this.cart.forEach(
+                    productId => {
+
+                        const product =
+                            this.products.find(
+                                p =>
+                                    p.id === productId
+                            );
+
+
+                        if (
+                            product &&
+                            !uniqueProducts.some(
+                                item =>
+                                    item.id === product.id
+                            )
+                        ) {
+
+                            uniqueProducts.push(
+                                product
+                            );
+
+                        }
+
+                    }
+                );
+
+
+                return uniqueProducts;
+
+            },
+
+
+            availableClubCount() {
+
+                return this.products.filter(
+                    product =>
+                        Number(
+                            product.availableInventory
+                        ) > 0
+                ).length;
+
+            }
+
+        }
+
+    });
+
+</script>
+
+</body>
 </html>
