@@ -56,7 +56,10 @@
                         <div v-for="product in sortedProducts" class="product-card">
 
                             <figure>
-                                <img v-bind:src="product.image" style="height: 30vh; width:30vh;">
+                                <img
+                                    v-bind:src="'https://afterschoolclub-backend.onrender.com/images/' + product.image.split('/').pop()"
+                                    style="height: 30vh; width:30vh;"
+                                >
                             </figure>
                             <h2 v-text="product.title"></h2>
                             <p v-html="product.description"></p>
