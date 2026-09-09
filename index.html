@@ -192,7 +192,7 @@
 
                     // Fetches product data from the API and stores it in the 'products' array
                     fetchProducts() {
-                        fetch('http://localhost:3000/products')
+                        fetch('https://afterschoolclub-backend.onrender.com/products')
                             .then(response => response.json())
                             .then(data => {
                                 this.products = data;
@@ -222,7 +222,7 @@
                     
                     // Submits the order data to the server (POST request)
                     submitForm() {
-                        fetch('http://localhost:3000/orders', {
+                        fetch('https://afterschoolclub-backend.onrender.com/orders', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -252,7 +252,7 @@
 
                     // Sends a PUT request to update product information on the server
                     updateProduct(productId, updateData) {
-                        fetch(`http://localhost:3000/products/${productId}`, {
+                        fetch(`https://afterschoolclub-backend.onrender.com/products/${productId}`, {
                             method: 'PUT',
                             headers: {
                                 'Content-Type': 'application/json',
